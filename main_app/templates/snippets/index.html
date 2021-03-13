@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>index.html of snippets!</h1>
+    {% comment %} RENDER ALL SNIPPETS {% endcomment %}
+    {% for snippet in snippets %}
+        <div class="card">
+            <div class="card-content">
+                    {{ snippet.body }}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock content %}
