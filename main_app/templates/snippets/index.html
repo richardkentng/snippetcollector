@@ -3,11 +3,34 @@
 {% block content %}
     <h1>index.html of snippets!</h1>
     {% comment %} RENDER ALL SNIPPETS {% endcomment %}
-    {% for snippet in snippets %}
-        <div class="card">
-            <div class="card-content">
-                    {{ snippet.body }}
+
+
+    <div class="cont-snippets">
+        {% for snippet in snippets %}
+            <div class="snippet">
+                        <textarea class="textarea">{{ snippet.body }}</textarea>
+                        {% for tag in snippet.tags.all %}
+                        <form method="POST" action="{% url 'unassoc_tag' snippet.id tag.id %}" class="inline-flex">
+                            {% csrf_token %}
+                            {% comment %} <p class="inline-flex tag" snippet-id="{{snippet.id}}" tag-id="{{tag.id}}">{{tag.name}}</p> {% endcomment %}
+                            <input type="submit" value="{{tag.name}}" class="tag">
+                        </form>
+
+                        {% endfor %}
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
+
+
+
+<script>
+    {% comment %} when i click on a tag, console log it's id {% endcomment %}
+    {% comment %} get all tag elements {% endcomment %}
+    const tags = document.querySelectorAll('.tag')
+    for (let tag of tags) {
+        console.log(tag.getAttribute('tag-id'));
+    }
+</script>
+
+
 {% endblock content %}

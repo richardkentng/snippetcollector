@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +9,8 @@
     <title>Document</title>
     {% comment %} MATERIALIZE CSS {% endcomment %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    {% comment %} STATIC CSS {% endcomment %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% comment %} MATERIALIZE JS {% endcomment %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
@@ -17,7 +21,6 @@
             <li><a href="{% url 'snippets' %}">Snippets</a></li>
             <li><a href="/admin" target="_blank">Admin</a></li>
         </ul>
-        
     </nav>
     
     <main class="container">
