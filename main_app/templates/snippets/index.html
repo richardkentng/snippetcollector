@@ -13,6 +13,19 @@
         </form>
     </div>
 
+    {% comment %}  {% endcomment %}
+    <button class="btn-new-snippet">New Snippet</button>
+
+    {% comment %} NEW SNIPPET (ModelForm) {% endcomment %}
+    <div class="card form-new-snippet" style="display: none;">
+        <div class="card-content">
+            <form method="POST" action="{% url 'new_snippet' %}">
+                {% csrf_token %}
+                {{snippet_form.as_p}}
+                <input type="submit" value="+ snippet">
+            </form>
+        </div>
+    </div>
 
     {% comment %} RENDER ALL SNIPPETS {% endcomment %}
     <div class="cont-snippets">
@@ -25,17 +38,24 @@
                     {% comment %} RENDER TAG(S) - UNASSOC TAG FORM {% endcomment %}
                     <form method="POST" action="{% url 'unassoc_tag' snippet.id tag.id %}" class="inline-flex">
                         {% csrf_token %}
-                        <input type="submit" value="{{tag.name}}" class="tag chip">
+                        <input type="submit" value="{{tag.name}}" class="tag">
                     </form>
                 {% endfor %}
 
                 {% comment %} FIND-OR-CREATE, ASSOC TAG FORM {% endcomment %}
                 <form  method="POST" action="{% url 'findOrCreate_assoc_tag' snippet.id %}" class="cont-add-tag">
                     {% csrf_token %}
-                    <input type="text" placeholder="some-tag" name="tag" class="tag-input" required>
+                    <input type="text" placeholder="some-tag" name="tag" class="tag-input" style="text-transform: lowercase;" required>
                     <input type="submit" value="+ tag" class="add-tag">
                 </form>
 
+                {% comment %} DELETE SNIPPET {% endcomment %}
+                <form method="POST" action="{% url 'delete_snippet' snippet.id %}" class="inline-flex">
+                    {% csrf_token %}
+                    <input type="submit" value="DELETE" style="color:salmon; position: absolute; bottom: 5px; right: 5px;">
+                </form>
+
+                {% comment %} SCORE (BOTTOM LEFT CORNER) {% endcomment %}
                 <div class="score" style="height:14px; width: 10px; background: #fff; border: 1px solid #aaa; position: absolute; bottom: 0; left: 0; font-size: 10px;"></div>
             </div>
         {% endfor %}
@@ -52,6 +72,8 @@ console.log('### sanity check ###');
     const formSearch = document.querySelector('.form-search')
     const autocomplete = document.querySelector('.autocomplete')
     const searchEl = document.querySelector('.search')
+    const btnNewSnippet = document.querySelector('.btn-new-snippet')
+    const formNewSnippet = document.querySelector('.form-new-snippet')
 
     const allTagsOnPage = {}
     for (let snippet of snippets) {
@@ -62,10 +84,14 @@ console.log('### sanity check ###');
             ta.style.height = '25px'
         }
 
+        //add tag to tag object.  order snippets based on number of tags
+        let score = 0
         const tagsOfSnippet = snippet.querySelectorAll('.tag')
         for (let tag of tagsOfSnippet) {
+            score++
             allTagsOnPage[tag.getAttribute('value')] = null
         }
+        snippet.style.order = score.toString()
         //'allTagsOnPage' is populated
     }
     
@@ -103,9 +129,21 @@ console.log('### sanity check ###');
 
             scoreEl.textContent = (score * -1).toString()
         }
+    })
 
-        //select search text
-        searchEl.select()
+    //click button to toggle visibility of new snippet form 
+    btnNewSnippet.addEventListener('click', () => {
+        if (formNewSnippet.style.display === 'none') {
+            formNewSnippet.style.display = 'block'
+            btnNewSnippet.textContent = '^collapse'
+            const bodyEl = formNewSnippet.querySelector('textarea')
+            bodyEl.focus()
+        } else {
+            formNewSnippet.style.display = 'none'
+            btnNewSnippet.textContent = 'New Snippet'
+            searchEl.focus()
+        }
+        
     })
 
 

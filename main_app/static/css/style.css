@@ -25,17 +25,16 @@ body {
 }
 
 .textarea {
-    background-color: #eee;
+    background-color: rgb(255, 223, 154);
 }
 
 .tag {
+    color: gray;
     background-color: rgb(240, 240, 240);
+    border: 1px solid black !important;
 }
 .cont-add-tag {
     display: inline-flex;
-    background-color: rgb(191, 235, 159);
-    border: 1px solid green;
-    padding: 0.5em;
     margin-left: 0.5em;
     height: 40px;
 }
