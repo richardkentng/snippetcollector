@@ -3,6 +3,21 @@
 {% block content %}
     <h1 class="h1">SnippetCollector</h1>
 
+    {% comment %} RENDER ALL GROUPS (WITH AT LEAST TWO TAGS) {% endcomment %}
+    {% for group in groups %}
+        {% if group.tag_set.all.count >= 2 %}
+        <div class="card group"> <!--style="display: none"-->
+            <div class="card-content">
+                <p class="card-title">{{group.name}}</p>
+                {% for tag in group.tag_set.all %}
+                    <p class="group-tag">{{tag.name}}</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
+
     {% comment %} SEARCH BAR {% endcomment %}
     <div style="border: 1px solid black; padding: 5px 10px 0px 10px; background-color: #ffd1d1; margin-bottom: 10px;">
         <form class="form-search">
@@ -74,6 +89,24 @@ console.log('### sanity check ###');
     const searchEl = document.querySelector('.search')
     const btnNewSnippet = document.querySelector('.btn-new-snippet')
     const formNewSnippet = document.querySelector('.form-new-snippet')
+    const wrapper = document.querySelector('.cont-snippets')
+
+
+    //get an array of arrays, where each child array contains the tags from each group
+    const groupEls = document.querySelectorAll('.group')
+    const groups = []
+    for (let groupEl of groupEls) {
+        //console.log('----group name:-------', groupEl.querySelector('.card-title').textContent)
+        const tagsForThisGroup = []
+        const tagEls = groupEl.querySelectorAll('.group-tag')
+        for (let tagEl of tagEls) {
+            //console.log(tagEl.textContent);
+            tagsForThisGroup.push(tagEl.textContent)
+        }
+        groups.push(tagsForThisGroup)
+    }
+    //console.log('groups:', groups);
+
 
     const allTagsOnPage = {}
     for (let snippet of snippets) {
@@ -84,7 +117,7 @@ console.log('### sanity check ###');
             ta.style.height = '25px'
         }
 
-        //add tag to tag object.  order snippets based on number of tags
+        //add tag to 'allTagsOnPage' as key.  order snippets based on number of tags
         let score = 0
         const tagsOfSnippet = snippet.querySelectorAll('.tag')
         for (let tag of tagsOfSnippet) {
@@ -104,14 +137,32 @@ console.log('### sanity check ###');
 
     formSearch.addEventListener('submit', (e) => {
         e.preventDefault()
+
+        //make wrapper dissappear for a millisecond 
+        wrapper.style.opacity = '0'
+        setTimeout(() => {
+            wrapper.style.opacity = '1'
+        }, 40)
+
         console.log('-------------you submitted thes search form!----------');
-        const searchInputStr = spacify(searchEl.value).toLowerCase()
-        console.log(`searchInputStr:>${ searchInputStr}<`);
+        const searchInputStr = spacify3(searchEl.value).toLowerCase()
+        let searchInputStrWithGroups = searchInputStr
+        //console.log(`searchInputStr:>${ searchInputStr}<`);
 
         if (searchInputStr == ' ') {
             console.log('ERROR- nothign entered');
             searchEl.value = ''
         }
+
+        //loop through every search tag - if it belongs to a group, then add the tags from that group to the search string 
+        const searchInputArr = spacify1(searchEl.value).toLowerCase().split(' ')
+        searchInputArr.forEach(searchTag => {
+            groups.forEach(group => {
+                if (group.indexOf(searchTag) !== -1) {
+                    searchInputStrWithGroups +=  group.join(' ') + ' '
+                }
+            })
+        })
 
         //calculate score for each snippet
         for (let snippet of snippets) {
@@ -120,7 +171,7 @@ console.log('### sanity check ###');
             let score = 0
             const tags = snippet.querySelectorAll('.tag')
             for (let tag of tags) {
-                if (searchInputStr.indexOf(tag.getAttribute('value').toLowerCase()) !== -1) {
+                if (searchInputStrWithGroups.indexOf(tag.getAttribute('value').toLowerCase()) !== -1) {
                     //console.log('found this snippet tag in search string: ', tag.getAttribute('value'));
                     score--
                 }
@@ -147,7 +198,7 @@ console.log('### sanity check ###');
     })
 
 
-function spacify(string) {
+function spacify3(string) {
     while (string.indexOf('  ') !== -1) {
         string = string.replace('  ',' ')
     }
@@ -162,6 +213,24 @@ function spacify(string) {
         string = stringSplit.join('')
     }
     return string
+}
+
+function spacify1(string) {
+    while (string.indexOf('  ') !== -1) {
+        string = string.replace('  ',' ')
+    }
+    let stringSplit = string.split('')
+    if (stringSplit[0] === ' ') {
+        stringSplit.shift(' ')
+        string = stringSplit.join('')
+    }
+    stringSplit = string.split('')
+    if (stringSplit[stringSplit.length - 1] === ' ') {
+        stringSplit.pop(' ')
+        string = stringSplit.join('')
+    }
+    return string
+
 }
 </script>
 

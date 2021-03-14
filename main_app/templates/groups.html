@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 class="h1">Group your tags!</h1>
+<p><i>How it works:  If you search for a tag that is in a group, your search will also include other tags in that group!</i></p>
+
+    <div class="card">
+        <div class="card-content">
+        <p class="card-title">new group:</p>
+            <form method="POST" action="{% url 'new_group' %}">
+                {% csrf_token %}
+                {{group_form.as_p}}
+                <input type="submit" value="+ new group">
+            </form>
+        </div>
+    </div>
+
+{% for group in groups %}
+    <div class="card">
+        <div class="card-content">
+
+            <p class="card-title">{{group.name}}</p>
+            {% for tag in group.tag_set.all %}
+                <p>{{tag.name}}</p>
+            {% endfor %}
+
+        </div>
+    </div>
+{% endfor %}
+
+{% endblock content %}
+

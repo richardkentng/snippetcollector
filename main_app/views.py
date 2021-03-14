@@ -1,15 +1,17 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import Group, Tag, Snippet
-from .forms import SnippetForm
+from .forms import SnippetForm, GroupForm
 
 # Create your views here.
 def snippets(request):
     # query all snippets
     snippets = Snippet.objects.all()
+    # query all groups
+    groups = Group.objects.all()
     # send empty instance of SnippetForm
     snippet_form = SnippetForm()
-    return render(request, 'snippets/index.html', {'snippets': snippets, 'snippet_form': snippet_form})
+    return render(request, 'snippets/index.html', {'snippets': snippets, 'snippet_form': snippet_form, 'groups': groups})
 
 def new_snippet(request):
     # populate snippet form with post data
@@ -43,3 +45,16 @@ def findOrCreate_assoc_tag(request, snippet_id):
     # associate them
     snippet.tags.add(foundOrCreated_tag)
     return redirect('snippets')
+
+def groups(request):
+    # query groups and send to template
+    groups = Group.objects.all()
+    # send empty instance of GroupForm to template
+    group_form = GroupForm()
+    return render(request, 'groups.html', {'groups': groups, 'group_form': group_form})
+
+def new_group(request):
+    # populate instance of GroupForm with post data
+    group_form = GroupForm(request.POST)
+    group_form.save()
+    return redirect('groups')
