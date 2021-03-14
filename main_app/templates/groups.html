@@ -21,7 +21,7 @@
 
 {% comment %} RENDER EVERY GROUP {% endcomment %}
 {% for group in groups %}
-    <div class="card">
+    <div class="card group" value="{{group.tag_set.all.count}}" style="opacity: 0.5">
         <div class="card-content">
 
             <p class="card-title">{{group.name}}</p>
@@ -48,15 +48,25 @@
 
         </div>
     </div>
+    {% empty %}
+    <p>You have no groups.  :'(</p>
 {% endfor %}
+
 
 
 <script>
     const btnNewGroup = document.querySelector('.btn-new-group')
     const formNewGroup = document.querySelector('.form-new-group')
-    //btnNewGroup.addEventListener('click', () => {
-        
-    //})
+
+    //if a group has at last 2 tags inside, make it fully opaque
+    const groups = document.querySelectorAll('.group')
+    for (let group of groups) {
+        if (parseInt(group.getAttribute('value')) >= 2) {
+            group.style.opacity = '1'
+        }
+    }
+
+    //click 'New Group' buttom to show/hide new group form
     btnNewGroup.addEventListener('click', () => {
         if (formNewGroup.style.display === 'none') {
             formNewGroup.style.display = 'block'

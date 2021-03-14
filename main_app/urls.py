@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('', views.home, name="home"),
     path('snippets/', views.snippets, name="snippets"),
     path('snippets/new', views.new_snippet, name="new_snippet"),
     path('snippets/<int:snippet_id>/delete', views.delete_snippet, name="delete_snippet"),
@@ -13,4 +14,5 @@ urlpatterns = [
     path('groups/<int:group_id>/delete/', views.delete_group, name="delete_group"),
     path('groups/<int:group_id>/assoc_tag_to_group/', views.assoc_tag_to_group, name="assoc_tag_to_group"),
     path('groups/<int:tag_id>/unassoc_tag_from_group/', views.unassoc_tag_from_group, name="unassoc_tag_from_group"),
+    path('accounts/signup/',views.signup, name="signup"),
 ]

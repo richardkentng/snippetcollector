@@ -22,10 +22,21 @@
 </head>
 <body>
     <nav class="nav-wrapper">
+
+
         <ul class="right">
-            <li><a href="{% url 'snippets' %}">Snippets</a></li>
-            <li><a href="{% url 'groups' %}">Groups</a></li>
             <li><a href="/admin" target="_blank">Admin</a></li>
+
+            {% if user.is_authenticated %}
+                <li style="color: #6df56d; margin-right: 20px;">Hi, {{user}}!</li>
+                <li><a href="{% url 'snippets' %}">Snippets</a></li>
+                <li><a href="{% url 'groups' %}">Groups</a></li>
+                <li><a href="{% url 'logout' %}">Log Out</a></li>
+            {% else %}
+                <li><a href="{% url 'home' %}">About</a></li>
+                <li><a href="{% url 'signup' %}">Sign Up</a></li>
+                <li><a href="{% url 'login' %}">Log In</a></li>
+            {%  endif %}
         </ul>
     </nav>
     
