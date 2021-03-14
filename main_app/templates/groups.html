@@ -3,30 +3,71 @@
 {% block content %}
 <h1 class="h1">Group your tags!</h1>
 <p><i>How it works:  If you search for a tag that is in a group, your search will also include other tags in that group!</i></p>
+<p><i>Hint:  For any group to affect your search, add at least 2 tags to it!</i></p>
 
-    <div class="card">
+    <button class="btn-new-group">New Group</button>
+
+    {% comment %} NEW GROUP {% endcomment %}
+    <div class="card form-new-group" style="display: none;">
         <div class="card-content">
-        <p class="card-title">new group:</p>
             <form method="POST" action="{% url 'new_group' %}">
                 {% csrf_token %}
                 {{group_form.as_p}}
-                <input type="submit" value="+ new group">
+                <input type="submit" value="+ group">
+                <label>(The group name can be anything, it does not really matter. :)</label>
             </form>
         </div>
     </div>
 
+{% comment %} RENDER EVERY GROUP {% endcomment %}
 {% for group in groups %}
     <div class="card">
         <div class="card-content">
 
             <p class="card-title">{{group.name}}</p>
+            {% comment %} RENDER EVERY TAG IN THIS GROUP {% endcomment %}
             {% for tag in group.tag_set.all %}
-                <p>{{tag.name}}</p>
+                <form method="POST" action="{% url 'unassoc_tag_from_group' tag.id %}" class="inline-flex">
+                    {% csrf_token %}
+                    <input type="submit" value="{{tag.name}}" class="tag">
+                </form>                
             {% endfor %}
+
+            {% comment %} FIND-OR-CREATE TAG, ASSOCIATE IT {% endcomment %}
+            <form method="POST" action="{% url 'assoc_tag_to_group' group.id %}" class="inline-flex">
+                {% csrf_token %}
+                <input type="text" name="tag" class="tag-input" style="text-transform: lowercase;" placeholder="some tag" required>
+                <input type="submit" value="+ tag" class="add-tag">
+            </form>
+
+            {% comment %} DELETE GROUP {% endcomment %}
+            <form method="POST" action="{% url 'delete_group' group.id %}">
+                {% csrf_token %}
+                <input type="submit" value="DELETE" style="position: absolute; bottom: 5px; right: 5px; color: salmon;">
+            </form>
 
         </div>
     </div>
 {% endfor %}
 
+
+<script>
+    const btnNewGroup = document.querySelector('.btn-new-group')
+    const formNewGroup = document.querySelector('.form-new-group')
+    //btnNewGroup.addEventListener('click', () => {
+        
+    //})
+    btnNewGroup.addEventListener('click', () => {
+        if (formNewGroup.style.display === 'none') {
+            formNewGroup.style.display = 'block'
+            btnNewGroup.textContent = '^collapse'
+            const inputEl = formNewGroup.querySelector('#id_name')
+            inputEl.focus()
+        } else {
+            formNewGroup.style.display = 'none'
+            btnNewGroup.textContent = 'New Snippet'
+        }
+    })    
+</script>
 {% endblock content %}
 

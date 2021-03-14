@@ -3,10 +3,10 @@
 {% block content %}
     <h1 class="h1">SnippetCollector</h1>
 
-    {% comment %} RENDER ALL GROUPS (WITH AT LEAST TWO TAGS) {% endcomment %}
+    {% comment %} RENDER ALL GROUPS (WITH AT LEAST TWO TAGS) AND HIDE THEM {% endcomment %}
     {% for group in groups %}
         {% if group.tag_set.all.count >= 2 %}
-        <div class="card group"> <!--style="display: none"-->
+        <div class="card group" style="display: none">
             <div class="card-content">
                 <p class="card-title">{{group.name}}</p>
                 {% for tag in group.tag_set.all %}
@@ -29,7 +29,7 @@
     </div>
 
     {% comment %}  {% endcomment %}
-    <button class="btn-new-snippet">New Snippet</button>
+    <button class="btn-new-snippet" style="margin-bottom: 8px;">New Snippet</button>
 
     {% comment %} NEW SNIPPET (ModelForm) {% endcomment %}
     <div class="card form-new-snippet" style="display: none;">
@@ -45,9 +45,9 @@
     {% comment %} RENDER ALL SNIPPETS {% endcomment %}
     <div class="cont-snippets">
         {% for snippet in snippets %}
-            <div class="snippet" style="position: relative;">
+            <div class="snippet" value="snippet{{snippet.id}}" style="position: relative;">
                 {% comment %} RENDER SNIPPET {% endcomment %}
-                <textarea class="textarea">{{ snippet.body }}</textarea>
+                <textarea class="textarea" readonly>{{ snippet.body }}</textarea>
 
                 {% for tag in snippet.tags.all %}
                     {% comment %} RENDER TAG(S) - UNASSOC TAG FORM {% endcomment %}
@@ -64,6 +64,22 @@
                     <input type="submit" value="+ tag" class="add-tag">
                 </form>
 
+                {% comment %} EDIT SNIPPET MODAL TRIGGER {% endcomment %}
+                <a class="modal-trigger" href="#modal{{snippet.id}}" style="border: 1px black solid; padding: 2px 15px 2px 15px; border-radius: 2px; background: #eee; position: absolute; bottom: 5px; right: 85px; height: 24px;">EDIT</a>
+
+                <!-- Modal Structure -->
+                <div id="modal{{snippet.id}}" class="modal">
+                    <div class="modal-content">
+                        <form method="POST" action="{% url 'edit_snippet' snippet.id %}">
+                            {% csrf_token %}
+                            <textarea type="text" class="body" name="body" required>{{snippet.body}}</textarea>
+                            <div class="modal-footer">
+                                <a href="#!" class="modal-close btn-flat">Cancel</a>
+                                <input type="submit" value="SAVE EDITS">
+                            </div>                            
+                        </form>
+                    </div>
+                </div>
                 {% comment %} DELETE SNIPPET {% endcomment %}
                 <form method="POST" action="{% url 'delete_snippet' snippet.id %}" class="inline-flex">
                     {% csrf_token %}
@@ -82,6 +98,10 @@
 
 
 <script>
+//initialize edit modals
+const modals = document.querySelectorAll('.modal');
+M.Modal.init(modals);
+
 console.log('### sanity check ###');
     const snippets = document.querySelectorAll('.snippet')
     const formSearch = document.querySelector('.form-search')
@@ -90,7 +110,7 @@ console.log('### sanity check ###');
     const btnNewSnippet = document.querySelector('.btn-new-snippet')
     const formNewSnippet = document.querySelector('.form-new-snippet')
     const wrapper = document.querySelector('.cont-snippets')
-
+    const modalTriggerEls = document.querySelectorAll('.modal-trigger')
 
     //get an array of arrays, where each child array contains the tags from each group
     const groupEls = document.querySelectorAll('.group')
@@ -115,6 +135,8 @@ console.log('### sanity check ###');
         const ta_length = ta.textContent.length
         if (ta_length < 50) {
             ta.style.height = '25px'
+        } else if (ta_length >= 200) {
+            ta.style.height = '75px'
         }
 
         //add tag to 'allTagsOnPage' as key.  order snippets based on number of tags
@@ -142,7 +164,7 @@ console.log('### sanity check ###');
         wrapper.style.opacity = '0'
         setTimeout(() => {
             wrapper.style.opacity = '1'
-        }, 40)
+        }, 30)
 
         console.log('-------------you submitted thes search form!----------');
         const searchInputStr = spacify3(searchEl.value).toLowerCase()
@@ -165,20 +187,44 @@ console.log('### sanity check ###');
         })
 
         //calculate score for each snippet
+        const orderValues = []
         for (let snippet of snippets) {
+            //reset styles
+            snippet.style.backgroundColor = 'white'
+            snippet.style.opacity = "1"
+
             const scoreEl = snippet.querySelector('.score')
 
             let score = 0
             const tags = snippet.querySelectorAll('.tag')
             for (let tag of tags) {
-                if (searchInputStrWithGroups.indexOf(tag.getAttribute('value').toLowerCase()) !== -1) {
+                if (searchInputStrWithGroups.indexOf(` ${tag.getAttribute('value').toLowerCase()} `) !== -1) {
                     //console.log('found this snippet tag in search string: ', tag.getAttribute('value'));
                     score--
                 }
             }
             snippet.style.order = score.toString()
-
+            orderValues.push([snippet.getAttribute('value'), snippet.style.order])
             scoreEl.textContent = (score * -1).toString()
+
+            if (snippet.style.order === "0" && searchEl.value !== "") {
+                snippet.style.opacity = "0.5"
+            }
+        }
+
+        //evaluate 'orderValyues' results, color snippet accordingly (green or yellow)
+        orderValues.sort((a,b) => a[1] -  b[1])
+        if (orderValues.length >= 2) {
+            if (orderValues[0][1] !== orderValues[1][1]) {
+                const snippetTop = document.querySelector(`.snippet[value=${orderValues[0][0]}]`)
+                snippetTop.style.backgroundColor = '#b8e45d' //greenish
+            } else if (orderValues[0][1] !== "0" && orderValues[0][1] === orderValues[1][1]) {
+                for (let snippet of snippets) {
+                    if (snippet.style.order === orderValues[0][1]) {
+                        snippet.style.backgroundColor = "#ffec80" //yellowish
+                    }
+                }
+            }
         }
     })
 
@@ -194,9 +240,27 @@ console.log('### sanity check ###');
             btnNewSnippet.textContent = 'New Snippet'
             searchEl.focus()
         }
-        
     })
 
+    //after opening edit modal, select textarea text
+    
+    for (let triggerEl of modalTriggerEls) {
+        //grab href to see specific modal associaiton
+        let modalId = triggerEl.getAttribute('href')
+        //remove '#' from modalId
+        modalId = modalId.slice(1, modalId.length)
+        //get modal that trigger is associated to
+        const modalEl = document.querySelector(`div[id=${modalId}]`)
+        //get the textarea inside the modal
+        const bodyEl = modalEl.querySelector('.body')
+        //when trigger is clicked, the bodyEl with be selected
+        triggerEl.addEventListener('click', () => {
+            setTimeout(() => {
+                bodyEl.select()
+                console.log('focused');
+            }, 50)
+        })
+    }
 
 function spacify3(string) {
     while (string.indexOf('  ') !== -1) {

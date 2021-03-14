@@ -19,6 +19,13 @@ def new_snippet(request):
     snippet_form.save()
     return redirect('snippets')
 
+def edit_snippet(request, snippet_id):
+    # query snippet by id
+    snippet = Snippet.objects.get(id=snippet_id)
+    snippet.body = request.POST["body"]
+    snippet.save()
+    return redirect('snippets')
+
 def delete_snippet(request, snippet_id):
     # find snippet, delete it
     snippet = Snippet.objects.get(id=snippet_id)
@@ -57,4 +64,23 @@ def new_group(request):
     # populate instance of GroupForm with post data
     group_form = GroupForm(request.POST)
     group_form.save()
+    return redirect('groups')
+
+def delete_group(request, group_id):
+    # query specific group to delete
+    group = Group.objects.get(id=group_id)
+    group.delete()
+    return redirect('groups')
+
+def assoc_tag_to_group(request, group_id):
+    # create tag from request-post data
+    tag = Tag(name=request.POST['tag'], group_id=group_id)
+    tag.save()
+    return redirect('groups')
+
+def unassoc_tag_from_group(request, tag_id):
+    # query for specific tag, remove foreign key
+    tag = Tag.objects.get(id=tag_id)
+    tag.group_id = None
+    tag.save()
     return redirect('groups')
