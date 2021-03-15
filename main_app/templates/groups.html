@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% block title %}Snippets - Groups{% endblock title %}
 {% block content %}
 <h1 class="h1">Group your tags!</h1>
 <p><i>How it works:  If you search for a tag that is in a group, your search will also include other tags in that group!</i></p>
@@ -75,7 +75,7 @@
             inputEl.focus()
         } else {
             formNewGroup.style.display = 'none'
-            btnNewGroup.textContent = 'New Snippet'
+            btnNewGroup.textContent = 'New Group'
         }
     })    
 </script>

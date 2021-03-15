@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% block title %}Snippets{% endblock title %}
 {% block content %}
     <h1 class="h1">SnippetCollector</h1>
 
@@ -28,15 +28,17 @@
         </form>
     </div>
 
-    <button class="btn-new-snippet" style="margin-bottom: 8px;">New Snippet</button>
+    <button class="btn-new-snippet">New Snippet</button>
+    <div style="margin-bottom: 5px;"><label>Control + N</label></div>
 
     {% comment %} NEW SNIPPET (ModelForm) {% endcomment %}
-    <div class="card form-new-snippet" style="display: none;">
+    <div class="card div-new-snippet" style="display: none;">
         <div class="card-content">
-            <form method="POST" action="{% url 'new_snippet' %}">
+            <form method="POST" action="{% url 'new_snippet' %}" class="form-new-snippet">
                 {% csrf_token %}
                 {{snippet_form.as_p}}
-                <input type="submit" value="+ snippet">
+                <input type="submit" value="+ snippet" class="btn-plus-snippet">
+                <p><label>Control + Enter</label></p>
             </form>
         </div>
     </div>
@@ -99,19 +101,35 @@
 
 
 <script>
-//initialize edit modals
-const modals = document.querySelectorAll('.modal');
-M.Modal.init(modals);
-
-console.log('### sanity check ###');
     const snippets = document.querySelectorAll('.snippet')
     const formSearch = document.querySelector('.form-search')
     const autocomplete = document.querySelector('.autocomplete')
     const searchEl = document.querySelector('.search')
     const btnNewSnippet = document.querySelector('.btn-new-snippet')
+    const divNewSnippet = document.querySelector('.div-new-snippet')
     const formNewSnippet = document.querySelector('.form-new-snippet')
+    const btnPlusSnippet = document.querySelector('.btn-plus-snippet')
     const wrapper = document.querySelector('.cont-snippets')
     const modalTriggerEls = document.querySelectorAll('.modal-trigger')
+    const modals = document.querySelectorAll('.modal');
+    //initialize edit modals
+    M.Modal.init(modals);
+
+    //keep track of state of 'Control' key
+    let controlDown = false;
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Control') controlDown = true
+        //control + n will click 'new snippet' button
+        if (e.key === 'n' && controlDown) {
+            btnNewSnippet.click()
+        }
+    })
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'Control') controlDown = false
+    })
+
+
+
 
     //get an array of arrays, where each child array contains the tags from each group
     const groupEls = document.querySelectorAll('.group')
@@ -167,7 +185,6 @@ console.log('### sanity check ###');
             wrapper.style.opacity = '1'
         }, 30)
 
-        console.log('-------------you submitted thes search form!----------');
         const searchInputStr = spacify3(searchEl.value).toLowerCase()
         let searchInputStrWithGroups = searchInputStr
         //console.log(`searchInputStr:>${ searchInputStr}<`);
@@ -208,6 +225,7 @@ console.log('### sanity check ###');
             orderValues.push([snippet.getAttribute('value'), snippet.style.order])
             scoreEl.textContent = (score * -1).toString()
 
+            //if snippet has score of 0, make it half transparent
             if (snippet.style.order === "0" && searchEl.value !== "") {
                 snippet.style.opacity = "0.5"
             }
@@ -231,20 +249,27 @@ console.log('### sanity check ###');
 
     //click button to toggle visibility of new snippet form 
     btnNewSnippet.addEventListener('click', () => {
-        if (formNewSnippet.style.display === 'none') {
-            formNewSnippet.style.display = 'block'
+        if (divNewSnippet.style.display === 'none') {
+            divNewSnippet.style.display = 'block'
             btnNewSnippet.textContent = '^collapse'
-            const bodyEl = formNewSnippet.querySelector('textarea')
+            //focus the textarea
+            const bodyEl = divNewSnippet.querySelector('textarea')
             bodyEl.focus()
         } else {
-            formNewSnippet.style.display = 'none'
+            divNewSnippet.style.display = 'none'
             btnNewSnippet.textContent = 'New Snippet'
             searchEl.focus()
         }
     })
 
+    //Control + Enter will submit a new snippet
+    formNewSnippet.addEventListener('keydown', (e) => {
+        if (controlDown && e.key === 'Enter') {
+            btnPlusSnippet.click()
+        }
+    })
+
     //after opening edit modal, select textarea text
-    
     for (let triggerEl of modalTriggerEls) {
         //grab href to see specific modal associaiton
         let modalId = triggerEl.getAttribute('href')

@@ -26,7 +26,10 @@ def new_snippet(request):
     snippet_form = SnippetForm(request.POST)
     new_snippet = snippet_form.save(commit=False)
     new_snippet.user = request.user
-    new_snippet.save()
+    try:
+        new_snippet.save()
+    except:
+        print('A snippet with that value already exists!')
     return redirect('snippets')
 
 @login_required
@@ -45,6 +48,18 @@ def delete_snippet(request, snippet_id):
     return redirect('snippets')
 
 @login_required
+def findOrCreate_assoc_tag(request, snippet_id):
+    # find snippet with provided id
+    snippet = Snippet.objects.get(id=snippet_id)
+    # find or create tag with provided id
+    tag = Tag(name=request.POST['tag'])
+    tag.save()
+    # tag = Tag.objects.get(id=tag_id)
+    # associate them
+    snippet.tags.add(tag)
+    return redirect('snippets')
+    
+@login_required
 def unassoc_tag(request, snippet_id, tag_id):
     # find snippet with provided id
     snippet = Snippet.objects.get(id=snippet_id)
@@ -54,17 +69,6 @@ def unassoc_tag(request, snippet_id, tag_id):
     snippet.tags.remove(tag)
     return redirect('snippets')
 
-@login_required
-def findOrCreate_assoc_tag(request, snippet_id):
-    # find snippet with provided id
-    snippet = Snippet.objects.get(id=snippet_id)
-    # find or create tag with provided id
-    foundOrCreated_tag = Tag(name=request.POST['tag'])
-    foundOrCreated_tag.save()
-    # tag = Tag.objects.get(id=tag_id)
-    # associate them
-    snippet.tags.add(foundOrCreated_tag)
-    return redirect('snippets')
 
 @login_required
 def groups(request):
